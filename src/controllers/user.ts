@@ -1,9 +1,12 @@
+import bcrypt from 'bcryptjs';
 import { NextFunction, Request, Response } from 'express';
+import { check, ValidationError, validationResult } from 'express-validator';
 
 import { User, UserDocument } from '../model/user';
 
 export interface ErrnoException extends Error {
   statusCode: number;
+  data?: ValidationError[];
 }
 
 export const createUser = async (
@@ -11,12 +14,26 @@ export const createUser = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | undefined> => {
-  const { email, password, username } = req.body;
-
   try {
-    const userDoc = await User.findOne({ email });
+    await check('email').trim().isEmail().run(req);
+    await check('password').trim().notEmpty().isLength({ min: 6 }).run(req);
+    await check('username').trim().notEmpty().run(req);
 
-    console.log('userDoc', userDoc);
+    const validation = validationResult(req);
+
+    if (!validation.isEmpty()) {
+      // ups!
+      const err: ErrnoException = new Error(
+        'validation inputs ko'
+      ) as ErrnoException;
+      err.statusCode = 422;
+      err.data = validation.array();
+      throw err;
+    }
+
+    const { email, password, username } = req.body;
+
+    const userDoc = await User.findOne({ email });
 
     if (userDoc) {
       // user with that email already exists
@@ -28,12 +45,15 @@ export const createUser = async (
       throw err;
     }
 
-    // TODO sanitize and validate input
-
-    // Encrypt passoword
+    // Encrypt password
+    const hashPassword = await bcrypt.hash(password, 10);
 
     // create a new user
-    const newUser: UserDocument = new User({ email, username, password });
+    const newUser: UserDocument = new User({
+      email,
+      username,
+      password: hashPassword,
+    });
 
     // save the user
     const userSaved = await newUser.save();
@@ -47,7 +67,7 @@ export const createUser = async (
       throw err;
     }
 
-    return res.status(200).json({
+    return res.status(201).json({
       message: 'user saved successfully!',
       payload: {
         _id: userSaved._id,
@@ -57,7 +77,6 @@ export const createUser = async (
     if (err.code) {
       err.statusCode = 500;
     }
-    console.log(err);
     next(err);
   }
 };
