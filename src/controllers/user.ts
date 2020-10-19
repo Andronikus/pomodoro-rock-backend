@@ -10,7 +10,7 @@ export const createUser = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Promise<Response | undefined> => {
   const { email, password, username } = req.body;
 
   try {
