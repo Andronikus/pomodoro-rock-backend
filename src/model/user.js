@@ -1,11 +1,5 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 const { Schema } = mongoose;
-
-export type UserDocument = mongoose.Document & {
-  username: string;
-  email: string;
-  password: string;
-};
 
 const userSchema = new Schema(
   {
@@ -26,6 +20,4 @@ const userSchema = new Schema(
   { timestamps: true }
 );
 
-const User = mongoose.model<UserDocument>('user', userSchema);
-
-export default User;
+module.exports = mongoose.model('user', userSchema);

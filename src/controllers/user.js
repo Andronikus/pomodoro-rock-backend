@@ -1,15 +1,9 @@
-import bcrypt from 'bcryptjs';
-import { NextFunction, Request, Response } from 'express';
-import { check, ValidationError, validationResult } from 'express-validator';
+const bcrypt = require('bcryptjs');
+const { check, validationResult } = require('express-validator');
 
-import User, { UserDocument } from '../model/user';
+const User = require('../model/user');
 
-export interface ErrnoException extends Error {
-  statusCode: number;
-  data?: ValidationError[];
-}
-
-export const createUser = async (req: Request, res: Response, next: NextFunction): Promise<Response | undefined> => {
+exports.createUser = async (req, res, next) => {
   try {
     await check('email').trim().isEmail().run(req);
     await check('password').trim().notEmpty().isLength({ min: 6 }).run(req);
@@ -19,7 +13,7 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
 
     if (!validation.isEmpty()) {
       // ups!
-      const err: ErrnoException = new Error('validation inputs ko') as ErrnoException;
+      const err = new Error('validation inputs ko');
       err.statusCode = 422;
       err.data = validation.array();
       throw err;
@@ -31,7 +25,7 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
 
     if (userDoc) {
       // user with that email already exists
-      const err: ErrnoException = new Error('Email already taken!') as ErrnoException;
+      const err = new Error('Email already taken!');
 
       err.statusCode = 409;
       throw err;
@@ -41,7 +35,7 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
     const hashPassword = await bcrypt.hash(password, 10);
 
     // create a new user
-    const newUser: UserDocument = new User({
+    const newUser = new User({
       email,
       username,
       password: hashPassword,
@@ -52,7 +46,7 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
 
     if (userSaved !== newUser) {
       // Update not worked!
-      const err: ErrnoException = new Error('Cannot save user') as ErrnoException;
+      const err = new Error('Cannot save user');
       err.statusCode = 422;
       throw err;
     }
