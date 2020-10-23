@@ -2,18 +2,14 @@ import bcrypt from 'bcryptjs';
 import { NextFunction, Request, Response } from 'express';
 import { check, ValidationError, validationResult } from 'express-validator';
 
-import { User, UserDocument } from '../model/user';
+import User, { UserDocument } from '../model/user';
 
 export interface ErrnoException extends Error {
   statusCode: number;
   data?: ValidationError[];
 }
 
-export const createUser = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | undefined> => {
+export const createUser = async (req: Request, res: Response, next: NextFunction): Promise<Response | undefined> => {
   try {
     await check('email').trim().isEmail().run(req);
     await check('password').trim().notEmpty().isLength({ min: 6 }).run(req);
@@ -23,9 +19,7 @@ export const createUser = async (
 
     if (!validation.isEmpty()) {
       // ups!
-      const err: ErrnoException = new Error(
-        'validation inputs ko'
-      ) as ErrnoException;
+      const err: ErrnoException = new Error('validation inputs ko') as ErrnoException;
       err.statusCode = 422;
       err.data = validation.array();
       throw err;
@@ -37,9 +31,7 @@ export const createUser = async (
 
     if (userDoc) {
       // user with that email already exists
-      const err: ErrnoException = new Error(
-        'Email already taken!'
-      ) as ErrnoException;
+      const err: ErrnoException = new Error('Email already taken!') as ErrnoException;
 
       err.statusCode = 409;
       throw err;
@@ -60,9 +52,7 @@ export const createUser = async (
 
     if (userSaved !== newUser) {
       // Update not worked!
-      const err: ErrnoException = new Error(
-        'Cannot save user'
-      ) as ErrnoException;
+      const err: ErrnoException = new Error('Cannot save user') as ErrnoException;
       err.statusCode = 422;
       throw err;
     }
