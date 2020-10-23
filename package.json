@@ -6,7 +6,7 @@
   "scripts": {
     "build": "npm run build-ts && npm run lint",
     "start": "npm run serve",
-    "test": "jest --forceExit --coverage --verbose",
+    "test": "jest --forceExit --coverage --verbose --detectOpenHandles",
     "build-ts": "tsc",
     "lint": "tsc --noEmit && eslint \"**/*.{js,ts}\" --quiet --fix",
     "serve": "node dist/server.js",
@@ -31,10 +31,12 @@
   },
   "homepage": "https://github.com/Andronikus/pomodoro-rock-backend#readme",
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.2",
     "@types/body-parser": "^1.19.0",
     "@types/concurrently": "^5.2.1",
     "@types/dotenv": "^8.2.0",
     "@types/express": "^4.17.8",
+    "@types/express-validator": "^3.0.0",
     "@types/jest": "^26.0.14",
     "@types/mongoose": "^5.7.36",
     "@types/node": "^14.11.10",
@@ -56,8 +58,10 @@
     "typescript": "^4.0.3"
   },
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
     "express": "^4.17.1",
+    "express-validator": "^6.6.1",
     "mongoose": "^5.10.9",
     "winston": "^3.3.3"
   }

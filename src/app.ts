@@ -1,5 +1,5 @@
 import bodyParser from 'body-parser';
-import express, { Request, Response } from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import mongoose from 'mongoose';
 
 import * as userController from './controllers/user';
@@ -20,11 +20,22 @@ app.get('/', (req: Request, res: Response) => {
 
 app.post('/signup', userController.createUser);
 
-app.use((err: userController.ErrnoException, req: Request, res: Response) => {
-  res.status(err.statusCode).json({
-    message: 'Something went wrong!',
-  });
-});
+app.use(
+  (
+    err: userController.ErrnoException,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    const statuCode: number = err.statusCode || 500;
+    res.status(statuCode).json({
+      message: err.message,
+      payload: {
+        data: err.data,
+      },
+    });
+  }
+);
 
 // connect to database
 mongoose.connect(
