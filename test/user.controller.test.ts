@@ -4,6 +4,9 @@ import { Request, Response } from 'express';
 import { createUser } from '../src/controllers/user';
 import User from '../src/model/user';
 
+// automatic mock
+const UserMock = jest.mock('../src/model/user');
+
 describe('Create a new user', function () {
   let spyHash: jest.SpyInstance;
 
@@ -13,6 +16,10 @@ describe('Create a new user', function () {
 
   afterAll(() => {
     spyHash.mockRestore();
+  });
+
+  beforeEach(() => {
+    UserMock.mockClear();
   });
 
   it("should call next function with error object (statusCode = 422) when request body doesn't have email", async function (done) {
