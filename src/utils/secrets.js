@@ -1,20 +1,18 @@
-import dotenv from 'dotenv';
-import fs from 'fs';
+const dotenv  = require('dotenv');
+const fs =require('fs');
 
-import logger from './logger';
+const logger =require('./logger');
 
 if (fs.existsSync('.env')) {
   dotenv.config({ path: '.env' });
   logger.debug('read .env file content to process.env');
 }
 
-export const ENVIRONMENT: string | undefined = process.env.NODE_ENV;
+const ENVIRONMENT = process.env.NODE_ENV;
 
 const isProductionEnv = ENVIRONMENT === 'production';
 
-export const MONGODB_URI: string = (isProductionEnv
-  ? process.env.MONGODB_URI
-  : process.env.MONGODB_LOCAL_URI) as string;
+const MONGODB_URI = isProductionEnv ? process.env.MONGODB_URI : process.env.MONGODB_LOCAL_URI;
 
 if (!MONGODB_URI) {
   if (isProductionEnv) {
@@ -25,3 +23,6 @@ if (!MONGODB_URI) {
 
   process.exit(1);
 }
+
+exports.ENVIRONMENT = ENVIRONMENT;
+exports.MONGODB_URI = MONGODB_URI;
