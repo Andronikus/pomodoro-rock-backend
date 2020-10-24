@@ -22,7 +22,7 @@ app.get('/', (req, res) => {
 
 app.post('/signup', userController.createUser(User));
 
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   const statuCode = err.statusCode || 500;
   res.status(statuCode).json({
     message: err.message,
