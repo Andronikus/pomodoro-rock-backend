@@ -2,9 +2,11 @@ const bodyParser = require('body-parser');
 const express = require('express');
 const mongoose = require('mongoose');
 
-const userController  = require('./controllers/user');
+const userController = require('./controllers/user');
 const logger = require('./utils/logger');
 const { MONGODB_URI } = require('./utils/secrets');
+
+const User = require('../src/model/user');
 
 const app = express();
 
@@ -18,7 +20,7 @@ app.get('/', (req, res) => {
   res.status(200).json({ message: 'ok' });
 });
 
-app.post('/signup', userController.createUser);
+app.post('/signup', userController.createUser(User));
 
 app.use((err, req, res, next) => {
   const statuCode = err.statusCode || 500;

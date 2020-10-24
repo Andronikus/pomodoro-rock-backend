@@ -1,7 +1,6 @@
-// Dummy test
-import request from 'supertest';
+const request = require('supertest');
 
-import app from '../src/app';
+const app = require('../src/app');
 
 describe('Get /', function () {
   it('should response with status code 200 and ok body message', function (done) {
