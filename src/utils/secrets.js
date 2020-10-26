@@ -1,7 +1,7 @@
-const dotenv  = require('dotenv');
-const fs =require('fs');
+const dotenv = require('dotenv');
+const fs = require('fs');
 
-const logger =require('./logger');
+const logger = require('./logger');
 
 if (fs.existsSync('.env')) {
   dotenv.config({ path: '.env' });
