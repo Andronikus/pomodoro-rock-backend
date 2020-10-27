@@ -21,6 +21,7 @@ app.get('/', (req, res) => {
 });
 
 app.post('/signup', userController.createUser(User));
+app.post('/login', userController.loginUser(User));
 
 app.use((err, req, res) => {
   const statuCode = err.statusCode || 500;
