@@ -1,5 +1,8 @@
 const User = require('../src/model/__mocks__/user').User;
 const createUser = require('../src/controllers/user').createUser(User);
+const loginUser = require('../src/controllers/user').loginUser(User);
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 describe('Create a new user controller', function () {
   it('should create an user successfully, return 201 & a body with the new user _id', async (done) => {
@@ -292,5 +295,137 @@ describe('Create a new user controller', function () {
     // expectation
     expect(nextFunction).toBeCalled();
     expect(nextFunction.mock.results[0].value.statusCode).toBe(500);
+  });
+});
+
+describe('loginUser controller', function () {
+  it('should call next function once with error object (statusCode = 422) when email is not valid', async function () {
+    // preparation
+    const MockData = {
+      email: '',
+      password: '123456',
+    };
+
+    const req = {
+      body: MockData,
+    };
+
+    const res = {};
+    const nextFunction = jest.fn((err) => err);
+
+    // call
+    await loginUser(req, res, nextFunction);
+
+    // expectations
+    expect(nextFunction).toHaveBeenCalledTimes(1);
+    expect(nextFunction.mock.results[0].value.statusCode).toBe(422);
+    expect(nextFunction.mock.results[0].value.data.length).toBeGreaterThan(0);
+  });
+
+  it('should call next function once with error object (statusCode = 422) when pw not fullfill size criteria', async function () {
+    const MockData = {
+      email: 'andronikus@gmail.com',
+      password: '12345',
+    };
+
+    const req = {
+      body: MockData,
+    };
+
+    const res = {};
+    const nextFunction = jest.fn((err) => err);
+
+    //call
+    await loginUser(req, res, nextFunction);
+
+    //expect
+    expect(nextFunction).toHaveBeenCalledTimes(1);
+    expect(nextFunction.mock.results[0].value.statusCode).toBe(422);
+    expect(nextFunction.mock.results[0].value.data.length).toBeGreaterThan(0);
+  });
+
+  it("should call next function once with error object (statusCode = 404) when the email does't exist", async function () {
+    const MockData = {
+      email: 'andronikus@gmail.com',
+      password: '123456',
+    };
+    const req = {
+      body: MockData,
+    };
+    const res = {};
+    const nextFunction = jest.fn((err) => err);
+
+    jest.spyOn(User, 'findOne').mockImplementation(() => Promise.resolve(undefined));
+
+    // call
+    await loginUser(req, res, nextFunction);
+
+    // expect
+    expect(nextFunction).toHaveBeenCalledTimes(1);
+    expect(nextFunction.mock.results[0].value.message).toBe('invalid login!');
+    expect(nextFunction.mock.results[0].value.statusCode).toBe(404);
+  });
+
+  it('should call next function once with error object (statusCode = 404) when pw not matched', async function () {
+    const MockData = {
+      email: 'andronikus@gmail.com',
+      password: '123456',
+    };
+    const req = {
+      body: MockData,
+    };
+    const res = {};
+    const nextFunction = jest.fn((err) => err);
+
+    const findOneMock = jest.spyOn(User, 'findOne').mockImplementationOnce(() => Promise.resolve(MockData));
+    const bcryptCompareMock = jest.spyOn(bcrypt, 'compare').mockImplementationOnce(() => Promise.resolve(false));
+
+    // call
+    await loginUser(req, res, nextFunction);
+
+    // expect
+    expect(nextFunction).toHaveBeenCalledTimes(1);
+    expect(nextFunction.mock.results[0].value.message).toBe('invalid login!');
+    expect(nextFunction.mock.results[0].value.statusCode).toBe(404);
+    expect(bcryptCompareMock).toHaveBeenCalledTimes(1);
+    expect(findOneMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('should return a response (statusCode = 200) and a body with a jwt token', async function () {
+    const MockData = {
+      email: 'andronikus@gmail.com',
+      password: '123456',
+      _id: 'abc123def456',
+    };
+    const req = {
+      body: MockData,
+    };
+    const res = {
+      body: {},
+      statusCode: undefined,
+      status: function (code) {
+        this.statusCode = code;
+        return this;
+      },
+      json: function (data) {
+        this.body = data;
+      },
+    };
+    const nextFunction = jest.fn((err) => err);
+
+    const findOneMock = jest.spyOn(User, 'findOne').mockImplementationOnce(() => Promise.resolve(MockData));
+    const bcryptCompareMock = jest.spyOn(bcrypt, 'compare').mockImplementationOnce(() => Promise.resolve(true));
+    const jwtSignInMock = jest.spyOn(jwt, 'sign').mockImplementationOnce(() => Promise.resolve('xwy.rty.uio'));
+
+    // call
+    await loginUser(req, res, nextFunction);
+
+    // expect
+    expect(bcryptCompareMock).toHaveBeenCalledTimes(1);
+    expect(findOneMock).toHaveBeenCalledTimes(1);
+    expect(jwtSignInMock).toHaveBeenCalledTimes(1);
+    expect(nextFunction).not.toBeCalled();
+    expect(res.statusCode).toBe(200);
+    expect(res.body.payload.token).toBeTruthy();
   });
 });

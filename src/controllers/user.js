@@ -85,7 +85,7 @@ exports.loginUser = (model) => {
       const matchPassword = await bcrypt.compare(password, userDoc.password);
 
       if (!matchPassword) {
-        const err = new Error('invalid login');
+        const err = new Error('invalid login!');
         err.statusCode = 404;
         throw err;
       }
